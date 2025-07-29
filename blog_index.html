@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meal Planner Blog</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 2px solid #b10000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+    header h1 {
+      color: #b10000;
+      margin: 0;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .navbar h1 {
+      color: #b10000;
+      font-size: 28px;
+      text-align: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #b10000;
+      margin: 0 15px;
+      font-size: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin: 1rem;
+    }
+    .search-container input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+    }
+    .search-container button {
+      padding: 0.5rem 1rem;
+      background: #b10000;
+      color: white;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+    }
+    #postContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    #addPostBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #b10000;
+      color: white;
+      font-size: 2rem;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      padding-top: 60px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 500px;
+    }
+    .closeBtn {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    input, textarea {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 0.7rem 1.2rem;
+      background: #b10000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1>Meal Planner</h1>
+  <div class="nav-links">
+    <a href="home.html">HOME</a>
+    <a href="blog_index.html">BLOG</a>
+    <a href="plan.html">PLAN</a>
+    <a href="expense.html">EXPENSE</a>
+    <a href="recipe.html">RECIPE</a>
+  </div>
+</div>
+
+<div class="search-container">
+  <input type="text" id="searchBar" placeholder="Search...">
+  <button onclick="searchPosts()">Search</button>
+</div>
+
+<main id="postContainer"></main>
+<button id="addPostBtn">+</button>
+
+<!-- Modal -->
+<div id="postModal" class="modal">
+  <div class="modal-content">
+    <span class="closeBtn">&times;</span>
+    <h2 id="modalTitle">Add New Post</h2>
+    <input type="text" id="author" placeholder="Author Name">
+    <input type="text" id="title" placeholder="Post Title">
+    <input type="date" id="date">
+    <textarea id="content" placeholder="Post Content"></textarea>
+    <input type="text" id="imageUrl" placeholder="Image URL (optional)">
+    <button onclick="savePost()">Save</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('addPostBtn')) {
+      document.getElementById('addPostBtn').onclick = () => openModal();
+      document.querySelector('.closeBtn').onclick = () => closeModal();
+      window.onclick = (e) => { if (e.target.className === 'modal') closeModal(); };
+      loadPosts();
+    }
+  });
+
+  function openModal() {
+    document.getElementById('modalTitle').textContent = "Add New Post";
+    clearModalFields();
+    document.getElementById('postModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('postModal').style.display = 'none';
+  }
+
+  function clearModalFields() {
+    document.getElementById('author').value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('imageUrl').value = '';
+    document.getElementById('postModal').dataset.editId = '';
+  }
+
+  function savePost() {
+    const author = document.getElementById('author').value;
+    const title = document.getElementById('title').value;
+    const date = document.getElementById('date').value;
+    const content = document.getElementById('content').value;
+    const imageUrl = document.getElementById('imageUrl').value;
+
+    if (!author || !title || !date || !content) {
+      alert('Please fill in all fields except image URL.');
+      return;
+    }
+
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+    const editId = document.getElementById('postModal').dataset.editId;
+
+    if (editId) {
+      posts[editId] = { author, title, date, content, imageUrl };
+    } else {
+      posts.push({ author, title, date, content, imageUrl });
+    }
+
+    localStorage.setItem('posts', JSON.stringify(posts));
+    closeModal();
+    loadPosts();
+  }
+
+  function loadPosts() {
+    const postContainer = document.getElementById('postContainer');
+    postContainer.innerHTML = '';
+    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+    posts.forEach((post, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${post.title}</h3>
+        <p><strong>${post.author}</strong> | <em>${post.date}</em></p>
+        ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}">` : ''}
+        <p>${post.content}</p>
+        <div style="margin-top:10px">
+          <button onclick="openPost(${index})">Open</button>
+          <button onclick="editPost(${index})">Edit</button>
+          <button onclick="deletePost(${index})">Delete</button>
+          <button onclick="submitPost(${index})">submit</button>
+        </div>
+      `;
+      postContainer.appendChild(card);
+    });
+  }
+
+  function openPost(index) {
+    const posts = JSON.parse(localStorage.getItem('posts'));
+    localStorage.setItem("selectedPost", JSON.stringify(posts[index]));
+    window.location.href = 'blog_post.html';
+  }
+
+  function editPost(index) {
+    const posts = JSON.parse(localStorage.getItem('posts'));
+    const post = posts[index];
+
+    document.getElementById('author').value = post.author;
+    document.getElementById('title').value = post.title;
+    document.getElementById('date').value = post.date;
+    document.getElementById('content').value = post.content;
+    document.getElementById('imageUrl').value = post.imageUrl;
+    document.getElementById('postModal').dataset.editId = index;
+
+    document.getElementById('modalTitle').textContent = "Edit Post";
+    document.getElementById('postModal').style.display = 'block';
+  }
+
+  function deletePost(index) {
+    if (confirm('Are you sure you want to delete this post?')) {
+      let posts = JSON.parse(localStorage.getItem('posts')) || [];
+      posts.splice(index, 1);
+      localStorage.setItem('posts', JSON.stringify(posts));
+      loadPosts();
+    }
+  }
+  
+  function submitPost(index) {
+    const posts = JSON.parse(localStorage.getItem("posts")) || [];
+    const post = posts[index];
+
+    const formData = new FormData();
+    formData.append('author', post.author);
+    formData.append('title', post.title);
+    formData.append('content', post.content);
+    formData.append('imageUrl', post.imageUrl || '');
+
+    fetch('submit_post.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Post submitted successfully!');
+      } else {
+        alert('Error submitting post: ' + data.message);
+      }
+    })
+    .catch(error => {
+      alert('Fetch error: ' + error);
+    });
+  }
+
+  function searchPosts() {
+    const searchValue = document.getElementById('searchBar').value.toLowerCase();
+    const cards = document.querySelectorAll('.card');
+
+    cards.forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(searchValue) ? 'block' : 'none';
+    });
+  }
+</script>
+
+</body>
+</html>

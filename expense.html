@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Meal Planner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0px;
+      color: #b10000;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .navbar h1 {
+      color: #b10000;
+      font-size: 28px;
+      text-align: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #b10000;
+      margin: 0 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .left-panel, .right-panel {
+      background: #fff;
+      padding: 20px;
+      margin: 30px;
+      border-radius: 10px;
+      border: 2px solid #b30000;
+      flex: 1;
+    }
+    .left-panel {
+      flex: 2;
+      max-width: 60%;
+    }
+    .right-panel {
+      flex: 1;
+      max-width: 40%;
+    }
+    input, button {
+      width: 80%;
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #b30000;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #9e0000;
+    }
+    .ingredient {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .ingredient button {
+      background: #ff6666;
+      border: none;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .total {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #333;
+    }
+    .meal-list div {
+      background: #ffeaea;
+      border: 1px solid #b30000;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Meal Planner</h1>
+    <div class="nav-links">
+      <a href="home.html">HOME</a>
+      <a href="blog_index.html">BLOG</a>
+      <a href="plan.html">PLAN</a>
+      <a href="expense.html">EXPENSE</a>
+      <a href="recipe.html">RECIPE</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="left-panel">
+      <h2>📅 Meal Expenses</h2>
+      <div id="mealList"></div>
+    </div>
+
+    <div class="right-panel">
+      <h2>🖩 Add Ingredient</h2>
+      <input type="date" id="datePicker" />
+      <input type="text" id="ingredientName" placeholder="Ingredient Name" />
+      <input type="number" id="ingredientPrice" placeholder="Price (₹)" />
+      <button onclick="addIngredient()">Add Ingredient</button>
+      <h3>Ingredient List:</h3>
+      <div id="ingredientList"></div>
+      <div class="total" id="dayTotal">Total: ₹0</div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-bottom: 30px;">
+    <button onclick="submitMeals()">Submit</button>
+  </div>
+
+  <div style="text-align: center; margin-bottom: 30px;">
+    <h3>Monthly Expense</h3>
+    <div id="monthlyExpense">Total: ₹0</div>
+  </div>
+
+  <script>
+    const mealData = {};
+
+    function addIngredient() {
+      const date = document.getElementById('datePicker').value;
+      const name = document.getElementById('ingredientName').value;
+      const price = parseFloat(document.getElementById('ingredientPrice').value);
+
+      if (!date || !name || isNaN(price)) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      if (!mealData[date]) {
+        mealData[date] = [];
+      }
+
+      mealData[date].push({ name, price });
+      renderIngredients();
+      renderMealList();
+
+      document.getElementById('ingredientName').value = '';
+      document.getElementById('ingredientPrice').value = '';
+    }
+
+    function renderIngredients() {
+      const date = document.getElementById('datePicker').value;
+      const ingredients = mealData[date] || [];
+      const container = document.getElementById('ingredientList');
+      container.innerHTML = '';
+      let total = 0;
+
+      ingredients.forEach((item, index) => {
+        total += item.price;
+        const div = document.createElement('div');
+        div.className = 'ingredient';
+        div.innerHTML = `${item.name} - ₹${item.price.toFixed(2)}
+          <button onclick="deleteIngredient('${date}', ${index})">✖</button>`;
+        container.appendChild(div);
+      });
+
+      document.getElementById('dayTotal').innerText = 'Total: ₹' + total.toFixed(2);
+    }
+
+    function deleteIngredient(date, index) {
+      mealData[date].splice(index, 1);
+      if (mealData[date].length === 0) delete mealData[date];
+      renderIngredients();
+      renderMealList();
+    }
+
+    function renderMealList() {
+      const mealList = document.getElementById('mealList');
+      mealList.innerHTML = '';
+      for (const date in mealData) {
+        const div = document.createElement('div');
+        div.innerHTML = `<h4>${date}</h4>
+          <p>Ingredients: ${mealData[date].map(i => i.name).join(', ')}</p>
+          <p>Total: ₹${mealData[date].reduce((sum, i) => sum + i.price, 0).toFixed(2)}</p>`;
+        mealList.appendChild(div);
+      }
+
+      updateMonthlyExpense();
+    }
+
+    function submitMeals() {
+      for (const date in mealData) {
+        mealData[date].forEach(item => {
+          fetch('expense.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `date=${encodeURIComponent(date)}&ingredient=${encodeURIComponent(item.name)}&price=${item.price}`
+          })
+          .then(res => res.text())
+          .then(data => console.log(data))
+          .catch(err => console.error('Error:', err));
+        });
+      }
+      alert('Meals submitted to database!');
+    }
+
+    function updateMonthlyExpense() {
+      let totalExpense = 0;
+      for (const date in mealData) {
+        totalExpense += mealData[date].reduce((sum, i) => sum + i.price, 0);
+      }
+      document.getElementById('monthlyExpense').innerText = 'Total Monthly Expense: ₹' + totalExpense.toFixed(2);
+    }
+  </script>
+</body>
+</html>

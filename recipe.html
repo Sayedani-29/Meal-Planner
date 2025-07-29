@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recipe Finder</title>
+  <style>
+    /* [your same CSS from earlier] */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0px;
+      padding: 0px;
+      background: #fff;
+      color: #b10000;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .navbar h1 {
+      color: #b10000;
+      font-size: 28px;
+      text-align: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #b10000;
+      margin: 0 15px;
+      font-size: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .search-bar input {
+      flex: 1 1 60%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .search-bar button {
+      background: #b10000;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    select {
+      width: 80%;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 5px;
+      font-size: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn {
+      width: 80%;
+      padding: 10px;
+      background: #900;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 20px auto 10px;
+      display: block;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background: #700;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+    ul li {
+      background: url('meal.jpg') no-repeat center center/cover;
+      color: white;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    ul li button {
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    ul li button:hover {
+      background: darkred;
+    }
+    .recipe-box {
+      margin-top: 25px;
+      background: #fff3cd;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2, p {
+      margin-bottom: 10px;
+    }
+    #history-box {
+  margin-top: 30px;
+  background: #f8f8f8;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#history-box h2 {
+  font-size: 22px;
+  color: #b10000;
+  text-align: center;
+}
+
+.history-entry {
+  background: #fff;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.history-entry strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.history-entry p {
+  margin: 5px 0;
+}
+
+  </style>
+</head>
+<body>
+ <!-- Navbar -->
+ <div class="navbar">
+  <h1>Meal Planner</h1>
+  <div class="nav-links">
+      <a href="home.html">HOME</a>
+      <a href="blog_index.html">BLOG</a>
+      <a href="plan.html">PLAN</a>
+      <a href="expense.html">EXPENSE</a>
+      <a href="recipe.html">RECIPE</a>
+  </div>
+</div>
+
+  <div class="container">
+    <h2>Find a Recipe</h2>
+
+    <label>Meal Type:</label>
+    <select id="mealType">
+      <option value="breakfast">Breakfast</option>
+      <option value="lunch">Lunch</option>
+      <option value="dinner">Dinner</option>
+    </select><br><br>
+
+    <input type="text" id="ingredientInput" placeholder="Enter ingredient">
+    <button onclick="addIngredient()">Add Ingredient</button>
+
+    <ul id="ingredientList"></ul>
+    <br>
+    <button onclick="findRecipe()">Find Recipe</button>
+
+    <h3 id="recipe-title"></h3>
+    <p id="recipe-description"></p>
+
+    <div id="history-box">
+      <h2>🔍 Search History</h2>
+      <div id="search-history"></div>
+    </div>
+  </div> 
+
+  <script>
+    let ingredients = [];
+
+    function addIngredient() {
+      const input = document.getElementById("ingredientInput");
+      const value = input.value.trim().toLowerCase();
+      if (value && !ingredients.includes(value)) {
+        ingredients.push(value);
+        updateIngredientList();
+      }
+      input.value = "";
+    }
+
+    function deleteIngredient(index) {
+      ingredients.splice(index, 1);
+      updateIngredientList();
+    }
+
+    function updateIngredientList() {
+      const list = document.getElementById("ingredientList");
+      list.innerHTML = "";
+      ingredients.forEach((ing, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${ing} <button onclick="deleteIngredient(${i})">❌</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function findRecipe() {
+      const mealType = document.getElementById("mealType").value;
+      const formData = new FormData();
+      formData.append("mealType", mealType);
+      formData.append("ingredients", JSON.stringify(ingredients));
+
+      fetch("recipe.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        const titleBox = document.getElementById("recipe-title");
+        const descBox = document.getElementById("recipe-description");
+        const historyBox = document.getElementById("search-history");
+
+        if (data.name && data.instructions) {
+          titleBox.innerText = "✅ " + data.name;
+          descBox.innerText = `Ingredients Used: ${data.ingredients.join(", ")}\n\nInstructions:\n${data.instructions}`;
+
+          const historyItem = document.createElement("div");
+          historyItem.classList.add("history-entry");
+          historyItem.innerHTML = `
+            <strong>Meal Type:</strong> ${mealType}<br>
+            <strong>Ingredients:</strong> ${data.ingredients.join(", ")}<br>
+            <strong>Recipe Name:</strong> ${data.name}<br>
+            <strong>Instructions:</strong> ${data.instructions.replace(/\n/g, "<br>")}
+          `;
+          historyBox.appendChild(historyItem);
+        } else {
+          titleBox.innerText = "❌ No Recipe Found";
+          descBox.innerText = data.error || "Try different ingredients.";
+        }
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        document.getElementById("recipe-title").innerText = "Error!";
+        document.getElementById("recipe-description").innerText = "Could not fetch recipe.";
+      });
+    }
+  </script>
+</body>
+</html>
